@@ -1,0 +1,93 @@
+name: "Continuous Integration"
+
+on: push
+
+jobs:
+  Build:
+    name: Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  Test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install flake8 pytest
+          if [ -f requirements_tests.txt ]; then pip install -r requirements_tests.txt; fi
+
+      - name: Test with pytest
+        run: |
+          pytest
+
+      - name: Coverage
+        run: |
+          if [ -f requirements_tests.txt ]; then pip install -r requirements_tests.txt; fi
+          echo "Listando antes do coverage"
+          ls -lrtha --color
+          python -m pytest --cov-report xml --cov=./
+          echo "Listando depois do coverage"
+          ls -lrtha --color
+
+  Quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    needs:
+      - Build
+      - Test
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          echo Quality
+
+  Security:
+    name: Security
+    runs-on: ubuntu-latest
+    needs:
+      - Build
+      - Test
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          echo Security
