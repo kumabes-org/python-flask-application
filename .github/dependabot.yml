@@ -4,4 +4,4 @@ updates:
     # Files stored in repository root
     directory: "app/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
